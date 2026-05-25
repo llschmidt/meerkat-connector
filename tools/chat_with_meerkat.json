@@ -1,0 +1,30 @@
+{
+  "name": "chat_with_meerkat",
+  "title": "Chat with Meerkat (prompt engineering)",
+  "description": "Run a request through Meerkat's prompt-engineering pipeline. Use this when the user has a messy 'just do this for me' request and wants Meerkat to turn it into a sharp, structured prompt. Auto-saves the result to the user's shelf at getmeerkat.dev/workspace.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "minLength": 1,
+        "description": "What the user wants Meerkat to help with. Pass it verbatim — Meerkat is designed to handle messy, plain-English requests."
+      },
+      "prompt_id": {
+        "type": "string",
+        "description": "Optional. Continue a Meerkat conversation that's already on the shelf. Get the id from search_shelf."
+      },
+      "project_id": {
+        "type": "string",
+        "description": "Optional. File the resulting shelf row into a specific project folder. Get the id from list_projects."
+      }
+    },
+    "required": ["message"]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "search_shelf",
+  "title": "Search the user's saved prompts",
+  "description": "Read-only. Searches the user's Meerkat shelf by substring across title and prompt body. Use this when the user references something they've previously saved. Returns the prompt text in full so it can be handed back to the user or piped into refactor_prompt. Excludes archived prompts. Most-recent first.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "minLength": 1,
+        "description": "What to search for. Case-insensitive substring against title and body. Keep it short (1–4 words)."
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "description": "Optional. Max results. Defaults to 5."
+      },
+      "project_id": {
+        "type": "string",
+        "description": "Optional. Restrict the search to one project folder. Get the id from list_projects."
+      }
+    },
+    "required": ["query"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "prompt": { "type": "string" },
+            "useCaseTitle": { "type": ["string", "null"] },
+            "approachTitle": { "type": ["string", "null"] },
+            "projectId": { "type": ["string", "null"] },
+            "updatedAt": { "type": "string" },
+            "shelfUrl": { "type": "string" }
+          },
+          "required": ["id", "title", "prompt", "updatedAt", "shelfUrl"]
+        }
+      }
+    },
+    "required": ["results"]
+  }
+}

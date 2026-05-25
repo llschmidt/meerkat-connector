@@ -1,0 +1,44 @@
+{
+  "name": "save_specimen",
+  "title": "Save a prompt to the user's shelf",
+  "description": "Saves a prompt to the user's Meerkat shelf so it shows up at getmeerkat.dev/workspace. Use this for explicit save requests on prompts that already exist in the conversation. For new prompts the user wants Meerkat to help build, prefer chat_with_meerkat — it auto-saves the conversation. Returns the saved prompt id and a link.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "minLength": 8,
+        "description": "The full prompt text to save. Save it verbatim — don't summarize."
+      },
+      "title": {
+        "type": "string",
+        "description": "Optional. Short title for the shelf entry (3–8 words). If omitted, Meerkat derives one from the prompt body."
+      },
+      "project_id": {
+        "type": "string",
+        "description": "Optional. File this prompt into a project folder. Get the id from list_projects."
+      },
+      "notes": {
+        "type": "string",
+        "description": "Optional. Free-form notes attached to the row's metadata."
+      }
+    },
+    "required": ["prompt"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string" },
+      "title": { "type": "string" },
+      "shelfUrl": { "type": "string" },
+      "projectId": { "type": ["string", "null"] }
+    },
+    "required": ["id", "title", "shelfUrl"]
+  }
+}

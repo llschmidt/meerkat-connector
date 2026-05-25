@@ -1,0 +1,45 @@
+{
+  "name": "list_projects",
+  "title": "List the user's Meerkat projects",
+  "description": "Read-only. Lists the project folders the user has in their Meerkat workspace, most-recently-updated first. Use this when the user wants to file something into a specific project — call list_projects to confirm the project exists, then pass its id to save_specimen or chat_with_meerkat.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Optional. Case-insensitive substring filter on the project name. Omit to list all projects."
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 50,
+        "description": "Optional. Max projects to return. Defaults to 20."
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "projects": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "description": { "type": ["string", "null"] },
+            "updatedAt": { "type": "string" }
+          },
+          "required": ["id", "name", "updatedAt"]
+        }
+      }
+    },
+    "required": ["projects"]
+  }
+}

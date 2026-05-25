@@ -1,0 +1,26 @@
+{
+  "name": "refactor_prompt",
+  "title": "Refactor an existing prompt",
+  "description": "Take an existing prompt the user has and run it through Meerkat's refactor pipeline to make it sharper, more structured, and more likely to produce the result the user actually wants. Auto-saves the refactored version to the user's shelf.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "minLength": 8,
+        "description": "The prompt to refactor. Pass it verbatim."
+      },
+      "notes": {
+        "type": "string",
+        "description": "Optional. Anything Meerkat should keep in mind during the refactor (audience, model, constraints)."
+      }
+    },
+    "required": ["prompt"]
+  }
+}
