@@ -48,7 +48,7 @@ The server registers six tools.
 | `search_shelf` | Search shelf | read-only | Searches the user's saved prompts by title or body text. |
 | `list_projects` | List projects | read-only | Lists the user's project folders. |
 
-No tool overwrites or deletes anything. Tools that write only create new rows in the signed-in user's own account. Older copies of five of the tool schemas are in [`tools/`](./tools). For the current, machine-readable tool list, connect any MCP client and call `tools/list`.
+No tool overwrites or deletes anything. Tools that write only create new rows in the signed-in user's own account. The full definition of each tool (description, input and output schemas, annotations), as the server returns it from `tools/list`, is in [`tools/`](./tools).
 
 ## What data leaves your client
 
@@ -83,7 +83,7 @@ Discovery metadata is published at `https://getmeerkat.dev/.well-known/oauth-pro
 The MCP server, sign-in and web app live in Meerkat's private repository. This public repo contains only:
 
 - setup and tool documentation (this README);
-- older tool schema copies (`tools/`);
+- tool definitions (`tools/`);
 - the privacy notes (`PRIVACY.md`);
 - the license (`LICENSE`).
 

@@ -1,30 +1,189 @@
 {
   "name": "chat_with_meerkat",
-  "title": "Chat with Meerkat (prompt engineering)",
-  "description": "Run a request through Meerkat's prompt-engineering pipeline. Use this when the user has a messy 'just do this for me' request and wants Meerkat to turn it into a sharp, structured prompt. Auto-saves the result to the user's shelf at getmeerkat.dev/workspace.",
+  "title": "Chat with Meerkat",
+  "description": "Meerkat, the prompt engineer behind getmeerkat.dev, writes or revises a prompt from a short conversation about it. Takes the turns of the conversation that are about the prompt being worked on (the user's request, later instructions about it, and Meerkat's earlier replies), oldest first and ending with a user turn, plus an optional working style. Returns Meerkat's reply in plain text, the current draft prompt (empty when Meerkat asks a clarifying question instead), 2 to 5 suggested follow-ups, a short title, a critique when revising a pasted prompt, and a record of which models drafted and merged the draft. When a draft is produced, the turns sent and Meerkat's reply are saved to the user's Meerkat shelf.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "messages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": [
+                "user",
+                "assistant"
+              ],
+              "description": "'user' for the person's turns, 'assistant' for Meerkat's earlier replies about this prompt."
+            },
+            "content": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The text of the turn."
+            }
+          },
+          "required": [
+            "role",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "minItems": 1,
+        "description": "The turns of the conversation that are about the prompt being worked on, oldest first: the user's request, later instructions about the prompt, and Meerkat's earlier replies. The last turn is from the user. Only these turns are sent to Meerkat and saved with the draft."
+      },
+      "archetype": {
+        "type": "string",
+        "enum": [
+          "writer",
+          "builder",
+          "operator"
+        ],
+        "description": "Optional working style: 'writer' (copy for people to read), 'builder' (a prompt wired into an app or agent) or 'operator' (get the task done with few questions). Defaults to 'writer'."
+      }
+    },
+    "required": [
+      "messages"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "reply": {
+        "type": "string",
+        "description": "Meerkat's reply, plain text, usually 1 to 3 sentences."
+      },
+      "prompt": {
+        "type": "string",
+        "description": "The current draft prompt. Empty when Meerkat asked a clarifying question instead."
+      },
+      "chips": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "2 to 5 short suggested follow-ups, each 24 characters or fewer."
+      },
+      "title": {
+        "type": "string",
+        "description": "A 3 to 5 word title describing what the prompt does."
+      },
+      "critique": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "wins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fixes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "wins",
+              "fixes"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "On revisions of a pasted prompt: 'wins' lists what the original did well, 'fixes' lists each problem and the change made. Null otherwise."
+      },
+      "synthesis": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "labs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Frontier labs that wrote an independent candidate this turn."
+              },
+              "count": {
+                "type": "number",
+                "description": "Number of independent drafts merged (excludes the synthesizer's own)."
+              },
+              "merger": {
+                "type": "string",
+                "description": "The lab that merged the drafts into the final prompt."
+              },
+              "reason": {
+                "type": "string",
+                "description": "Plain-English why this depth was chosen."
+              },
+              "bucket": {
+                "type": "string",
+                "description": "Diagnosed complexity bucket."
+              },
+              "taskClass": {
+                "type": "string",
+                "description": "Diagnosed task class (extraction/reasoning/creative/agentic/general)."
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The distinct angles the panel drafted from."
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "first",
+                  "refine"
+                ],
+                "description": "'first' = drafted from scratch; 'refine' = revised an existing prompt."
+              }
+            },
+            "required": [
+              "labs",
+              "count",
+              "merger",
+              "reason",
+              "bucket"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Which frontier labs drafted independent candidates this turn and which one merged them. Null when no panel ran. The reply already ends with a one-line plain-text summary of this."
+      }
+    },
+    "required": [
+      "reply",
+      "prompt",
+      "chips",
+      "title",
+      "critique",
+      "synthesis"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
   "annotations": {
+    "title": "Chat with Meerkat",
     "readOnlyHint": false,
     "destructiveHint": false,
     "idempotentHint": false,
     "openWorldHint": true
   },
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "message": {
-        "type": "string",
-        "minLength": 1,
-        "description": "What the user wants Meerkat to help with. Pass it verbatim — Meerkat is designed to handle messy, plain-English requests."
-      },
-      "prompt_id": {
-        "type": "string",
-        "description": "Optional. Continue a Meerkat conversation that's already on the shelf. Get the id from search_shelf."
-      },
-      "project_id": {
-        "type": "string",
-        "description": "Optional. File the resulting shelf row into a specific project folder. Get the id from list_projects."
-      }
-    },
-    "required": ["message"]
+  "execution": {
+    "taskSupport": "forbidden"
   }
 }

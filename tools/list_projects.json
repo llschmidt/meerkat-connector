@@ -1,27 +1,19 @@
 {
   "name": "list_projects",
-  "title": "List the user's Meerkat projects",
-  "description": "Read-only. Lists the project folders the user has in their Meerkat workspace, most-recently-updated first. Use this when the user wants to file something into a specific project — call list_projects to confirm the project exists, then pass its id to save_specimen or chat_with_meerkat.",
-  "annotations": {
-    "readOnlyHint": true,
-    "destructiveHint": false,
-    "idempotentHint": true,
-    "openWorldHint": false
-  },
+  "title": "List projects",
+  "description": "Lists the project folders in the user's Meerkat workspace, most recently updated first. Takes an optional limit (1 to 50, default 20). Returns each project's id, name, description and last-updated time. When the user has no projects, returns an empty list and a note saying so. Read-only.",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "query": {
-        "type": "string",
-        "description": "Optional. Case-insensitive substring filter on the project name. Omit to list all projects."
-      },
       "limit": {
         "type": "integer",
         "minimum": 1,
         "maximum": 50,
         "description": "Optional. Max projects to return. Defaults to 20."
       }
-    }
+    },
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
   },
   "outputSchema": {
     "type": "object",
@@ -31,15 +23,50 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "name": { "type": "string" },
-            "description": { "type": ["string", "null"] },
-            "updatedAt": { "type": "string" }
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "updatedAt": {
+              "type": "string"
+            }
           },
-          "required": ["id", "name", "updatedAt"]
+          "required": [
+            "id",
+            "name",
+            "description",
+            "updatedAt"
+          ],
+          "additionalProperties": false
         }
+      },
+      "note": {
+        "type": "string",
+        "description": "Present only when the user has no projects. States that in plain text."
       }
     },
-    "required": ["projects"]
+    "required": [
+      "projects"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "annotations": {
+    "title": "List projects",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "execution": {
+    "taskSupport": "forbidden"
   }
 }

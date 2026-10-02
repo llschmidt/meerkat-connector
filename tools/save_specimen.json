@@ -1,44 +1,70 @@
 {
   "name": "save_specimen",
-  "title": "Save a prompt to the user's shelf",
-  "description": "Saves a prompt to the user's Meerkat shelf so it shows up at getmeerkat.dev/workspace. Use this for explicit save requests on prompts that already exist in the conversation. For new prompts the user wants Meerkat to help build, prefer chat_with_meerkat — it auto-saves the conversation. Returns the saved prompt id and a link.",
-  "annotations": {
-    "readOnlyHint": false,
-    "destructiveHint": false,
-    "idempotentHint": false,
-    "openWorldHint": false
-  },
+  "title": "Save to shelf",
+  "description": "Saves a prompt to the user's Meerkat shelf at getmeerkat.dev. Takes the prompt text, and optionally a title, a project id to file it under, and notes. Returns the saved prompt's id, its title (derived from the prompt when none is given), its project id and a link to it on the shelf. Fails if the project id is not one of the user's projects.",
   "inputSchema": {
     "type": "object",
     "properties": {
       "prompt": {
         "type": "string",
         "minLength": 8,
-        "description": "The full prompt text to save. Save it verbatim — don't summarize."
+        "description": "The full prompt text to save, verbatim."
       },
       "title": {
         "type": "string",
-        "description": "Optional. Short title for the shelf entry (3–8 words). If omitted, Meerkat derives one from the prompt body."
+        "description": "Optional. A short title for the shelf entry (3 to 8 words). When omitted, one is derived from the prompt."
       },
       "project_id": {
         "type": "string",
-        "description": "Optional. File this prompt into a project folder. Get the id from list_projects."
+        "description": "Optional. The id of one of the user's projects to file the prompt under."
       },
       "notes": {
         "type": "string",
-        "description": "Optional. Free-form notes attached to the row's metadata."
+        "description": "Optional. Free-form notes stored with the prompt."
       }
     },
-    "required": ["prompt"]
+    "required": [
+      "prompt"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
   },
   "outputSchema": {
     "type": "object",
     "properties": {
-      "id": { "type": "string" },
-      "title": { "type": "string" },
-      "shelfUrl": { "type": "string" },
-      "projectId": { "type": ["string", "null"] }
+      "id": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "shelfUrl": {
+        "type": "string"
+      },
+      "projectId": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
     },
-    "required": ["id", "title", "shelfUrl"]
+    "required": [
+      "id",
+      "title",
+      "shelfUrl",
+      "projectId"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "annotations": {
+    "title": "Save to shelf",
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "execution": {
+    "taskSupport": "forbidden"
   }
 }

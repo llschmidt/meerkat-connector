@@ -1,26 +1,165 @@
 {
   "name": "refactor_prompt",
-  "title": "Refactor an existing prompt",
-  "description": "Take an existing prompt the user has and run it through Meerkat's refactor pipeline to make it sharper, more structured, and more likely to produce the result the user actually wants. Auto-saves the refactored version to the user's shelf.",
+  "title": "Sharpen a prompt",
+  "description": "Meerkat revises a prompt the user already has. Takes the prompt text verbatim, optional notes on what to change, and an optional working style. Returns Meerkat's reply in plain text, the revised prompt, a critique listing what the original did well and what was changed, 2 to 5 suggested follow-ups, a short title, and a record of which models drafted and merged the revision. The request and the revised prompt are saved to the user's Meerkat shelf.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "existing_prompt": {
+        "type": "string",
+        "minLength": 3,
+        "description": "The prompt to revise, verbatim."
+      },
+      "notes": {
+        "type": "string",
+        "description": "Optional. What the user wants different, for example 'shorter', 'aimed at a CTO' or 'less corporate'. Without notes, Meerkat reviews and improves the prompt overall."
+      },
+      "archetype": {
+        "type": "string",
+        "enum": [
+          "writer",
+          "builder",
+          "operator"
+        ],
+        "description": "Optional working style: 'writer', 'builder' or 'operator'. Defaults to 'writer'."
+      }
+    },
+    "required": [
+      "existing_prompt"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "reply": {
+        "type": "string"
+      },
+      "prompt": {
+        "type": "string"
+      },
+      "chips": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "title": {
+        "type": "string"
+      },
+      "critique": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "wins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "fixes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "wins",
+              "fixes"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "synthesis": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "labs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Frontier labs that wrote an independent candidate this turn."
+              },
+              "count": {
+                "type": "number",
+                "description": "Number of independent drafts merged (excludes the synthesizer's own)."
+              },
+              "merger": {
+                "type": "string",
+                "description": "The lab that merged the drafts into the final prompt."
+              },
+              "reason": {
+                "type": "string",
+                "description": "Plain-English why this depth was chosen."
+              },
+              "bucket": {
+                "type": "string",
+                "description": "Diagnosed complexity bucket."
+              },
+              "taskClass": {
+                "type": "string",
+                "description": "Diagnosed task class (extraction/reasoning/creative/agentic/general)."
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The distinct angles the panel drafted from."
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "first",
+                  "refine"
+                ],
+                "description": "'first' = drafted from scratch; 'refine' = revised an existing prompt."
+              }
+            },
+            "required": [
+              "labs",
+              "count",
+              "merger",
+              "reason",
+              "bucket"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Which frontier labs drafted independent candidates this turn and which one merged them. Null when no panel ran. The reply already ends with a one-line plain-text summary of this."
+      }
+    },
+    "required": [
+      "reply",
+      "prompt",
+      "chips",
+      "title",
+      "critique",
+      "synthesis"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
   "annotations": {
+    "title": "Sharpen a prompt",
     "readOnlyHint": false,
     "destructiveHint": false,
     "idempotentHint": false,
     "openWorldHint": true
   },
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "prompt": {
-        "type": "string",
-        "minLength": 8,
-        "description": "The prompt to refactor. Pass it verbatim."
-      },
-      "notes": {
-        "type": "string",
-        "description": "Optional. Anything Meerkat should keep in mind during the refactor (audience, model, constraints)."
-      }
-    },
-    "required": ["prompt"]
+  "execution": {
+    "taskSupport": "forbidden"
   }
 }

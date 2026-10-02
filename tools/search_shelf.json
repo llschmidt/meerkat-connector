@@ -1,20 +1,14 @@
 {
   "name": "search_shelf",
-  "title": "Search the user's saved prompts",
-  "description": "Read-only. Searches the user's Meerkat shelf by substring across title and prompt body. Use this when the user references something they've previously saved. Returns the prompt text in full so it can be handed back to the user or piped into refactor_prompt. Excludes archived prompts. Most-recent first.",
-  "annotations": {
-    "readOnlyHint": true,
-    "destructiveHint": false,
-    "idempotentHint": true,
-    "openWorldHint": false
-  },
+  "title": "Search shelf",
+  "description": "Searches the user's saved prompts on their Meerkat shelf for text in the title or body (case-insensitive substring). Archived prompts are excluded. Takes a query, an optional limit (1 to 20, default 5) and an optional project id to search within. Returns matching prompts, most recent first, each with its full text, title, project id, last-updated time and a link to it on getmeerkat.dev. When nothing matches, returns an empty list and a note saying whether the shelf has no saved prompts or the query matched none. Read-only.",
   "inputSchema": {
     "type": "object",
     "properties": {
       "query": {
         "type": "string",
         "minLength": 1,
-        "description": "What to search for. Case-insensitive substring against title and body. Keep it short (1–4 words)."
+        "description": "Text to look for in prompt titles and bodies. Case-insensitive substring; queries of 1 to 4 words match best."
       },
       "limit": {
         "type": "integer",
@@ -24,10 +18,14 @@
       },
       "project_id": {
         "type": "string",
-        "description": "Optional. Restrict the search to one project folder. Get the id from list_projects."
+        "description": "Optional. A project id; limits the search to that project."
       }
     },
-    "required": ["query"]
+    "required": [
+      "query"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
   },
   "outputSchema": {
     "type": "object",
@@ -37,19 +35,72 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "title": { "type": "string" },
-            "prompt": { "type": "string" },
-            "useCaseTitle": { "type": ["string", "null"] },
-            "approachTitle": { "type": ["string", "null"] },
-            "projectId": { "type": ["string", "null"] },
-            "updatedAt": { "type": "string" },
-            "shelfUrl": { "type": "string" }
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "prompt": {
+              "type": "string"
+            },
+            "useCaseTitle": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "approachTitle": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "projectId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "updatedAt": {
+              "type": "string"
+            },
+            "shelfUrl": {
+              "type": "string"
+            }
           },
-          "required": ["id", "title", "prompt", "updatedAt", "shelfUrl"]
+          "required": [
+            "id",
+            "title",
+            "prompt",
+            "useCaseTitle",
+            "approachTitle",
+            "projectId",
+            "updatedAt",
+            "shelfUrl"
+          ],
+          "additionalProperties": false
         }
+      },
+      "note": {
+        "type": "string",
+        "description": "Present only when results is empty. Says whether the shelf has no saved prompts or the query matched none."
       }
     },
-    "required": ["results"]
+    "required": [
+      "results"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "annotations": {
+    "title": "Search shelf",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "execution": {
+    "taskSupport": "forbidden"
   }
 }

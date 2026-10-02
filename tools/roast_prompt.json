@@ -1,0 +1,91 @@
+{
+  "name": "roast_prompt",
+  "title": "Roast a prompt",
+  "description": "Meerkat critiques a prompt bluntly and rebuilds it. Takes the prompt text (20 to 8,000 characters). Returns a severity from 0 to 5, a one-line verdict, two to four burns (each quotes a phrase from the prompt, says why it hurts and what to change), a rebuilt prompt ready to paste, and a link to a private page with the roast. Nothing is saved to the user's shelf. Limited to 5 roasts per hour per user.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "minLength": 20,
+        "maxLength": 8000,
+        "description": "The prompt to roast, verbatim. 20 to 8,000 characters."
+      }
+    },
+    "required": [
+      "prompt"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "severity": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "verdict": {
+        "type": "string"
+      },
+      "burns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "quote": {
+              "type": "string"
+            },
+            "why": {
+              "type": "string"
+            },
+            "fix": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "lesson": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "quote",
+            "why",
+            "fix",
+            "tag",
+            "lesson"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "rebuilt": {
+        "type": "string"
+      },
+      "pageUrl": {
+        "type": "string",
+        "description": "A private page with this roast. Not indexed unless the user shares it from the web."
+      }
+    },
+    "required": [
+      "severity",
+      "verdict",
+      "burns",
+      "rebuilt",
+      "pageUrl"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  },
+  "annotations": {
+    "title": "Roast a prompt",
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": true
+  },
+  "execution": {
+    "taskSupport": "forbidden"
+  }
+}
