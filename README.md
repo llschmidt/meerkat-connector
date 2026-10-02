@@ -1,113 +1,100 @@
-# Meerkat — Claude Connector
+# Meerkat MCP server
 
-The public surface of the Meerkat connector for Claude.
+A prompt engineer you talk to. It writes prompts, sharpens yours, and keeps them on your shelf.
 
-This repository documents the [Meerkat](https://getmeerkat.dev) MCP server that
-powers Meerkat's Claude connector. The production server is hosted at
-`https://getmeerkat.dev/api/mcp` and is the only endpoint Claude talks to —
-this repo exists so anyone (Claude users, Anthropic reviewers, the curious)
-can audit exactly what tools the connector exposes, what data it asks for,
-and how the OAuth flow works, without needing access to Meerkat's
-closed-source application code.
+This repository documents the [Meerkat](https://getmeerkat.dev) MCP server, the one behind Meerkat's Claude connector. The production server is hosted at `https://getmeerkat.dev/api/mcp`. This repo exists so anyone (users, directory reviewers, the curious) can see which tools the server exposes, what data each one receives, and how sign-in works, without access to Meerkat's closed-source application code.
 
 ## What Meerkat is
 
-Meerkat turns messy `"just do this for me"` requests into sharp, structured
-prompts that work — without you learning prompt engineering. You write what
-you mean; Meerkat does the engineering.
+Meerkat is a prompt engineer you talk to. Describe what you want and it asks the one or two questions that matter, then writes the prompt. Paste a prompt you already have and it returns a sharper version with a short critique of what changed. Roast mode gives a severity score, a one-line verdict and a rebuilt version. Everything can be saved to your Meerkat shelf, searchable from your AI client or at [getmeerkat.dev](https://getmeerkat.dev).
 
-The Claude connector lets you use that same engine from inside Claude:
+## Connect
 
-- Refine a messy prompt into something a model can actually run with
-- Save anything from a Claude conversation to your Meerkat shelf at
-  [getmeerkat.dev/workspace](https://getmeerkat.dev/workspace)
-- Pull prompts you've already saved back into Claude when you need them again
-- Keep your Meerkat projects in sync between the web app and Claude
+Remote server, Streamable HTTP, OAuth sign-in. Nothing to install, and a free Meerkat account works.
 
-## Tools the connector exposes
-
-The MCP server registers five tools. JSON Schemas for each are in
-[`tools/`](./tools).
-
-| Tool                | Type      | What it does                                                                 |
-| ------------------- | --------- | ---------------------------------------------------------------------------- |
-| `chat_with_meerkat` | mutating  | Run a request through Meerkat's prompt-engineering pipeline. Auto-saves.     |
-| `refactor_prompt`   | mutating  | Take an existing prompt and refine it. Auto-saves the refactored version.    |
-| `list_projects`     | read-only | List the user's Meerkat project folders.                                     |
-| `search_shelf`      | read-only | Search the user's saved prompts (title + body) on getmeerkat.dev.            |
-| `save_specimen`     | mutating  | Explicitly save a prompt to the user's shelf. Optional project_id.           |
-
-Every mutating tool is non-destructive: it can only create new rows, never
-overwrite or delete existing ones. The user's existing shelf is never
-mutated through this connector.
-
-## How authentication works
-
-Meerkat uses **OAuth 2.0 with PKCE**, backed by Supabase as the identity
-provider:
-
-1. The user adds Meerkat as a custom connector in Claude.
-2. Claude redirects the user to `https://getmeerkat.dev/oauth/consent`.
-3. The user signs in with their existing Meerkat / Supabase account
-   (or creates one).
-4. The consent screen shows exactly which scopes Claude is requesting,
-   in plain English.
-5. On approval, Claude receives a bearer token scoped to that user.
-6. Every MCP call carries that token; the server resolves it to a
-   Supabase user and scopes all reads and writes to that user's rows.
-
-Discovery metadata is published at
-`https://getmeerkat.dev/.well-known/oauth-protected-resource` per
-RFC 9728.
-
-## What data leaves Claude
-
-When you call a tool, only the arguments you pass to that tool leave Claude.
-The connector does not have access to the rest of your Claude conversation.
-
-| Tool                | Data sent to Meerkat                                                     |
-| ------------------- | ------------------------------------------------------------------------ |
-| `chat_with_meerkat` | The `message` you send, optional `prompt_id`/`project_id`.               |
-| `refactor_prompt`   | The `prompt` text you want refined, optional `notes`.                    |
-| `list_projects`     | An optional name `query` and `limit`. Nothing about your conversation.   |
-| `search_shelf`      | The `query` string and optional `project_id`.                            |
-| `save_specimen`     | The `prompt` you choose to save, optional `title`, `project_id`, notes.  |
-
-See [`PRIVACY.md`](./PRIVACY.md) for storage, retention, and deletion details.
-
-## Setup (for end users)
-
-1. Open Claude Desktop → Settings → Connectors → **Add custom connector**.
+**Claude (web and desktop)**
+1. Open Settings, then Connectors, then **Add custom connector**.
 2. Server URL: `https://getmeerkat.dev/api/mcp`
-3. Approve the OAuth flow.
-4. In any Claude conversation, ask Claude to use Meerkat — for example,
-   *"Use Meerkat to refine this prompt for me."*
+3. Sign in with your Meerkat account when asked.
 
-Full setup walkthrough with screenshots:
-[getmeerkat.dev/docs/claude](https://getmeerkat.dev/docs/claude).
+**Claude Code**
+```
+claude mcp add --transport http meerkat https://getmeerkat.dev/api/mcp
+```
+Then run `/mcp` to sign in.
+
+**Other MCP clients with remote servers and OAuth** (Cursor, VS Code, Cline and others)
+```json
+{
+  "mcpServers": {
+    "meerkat": { "url": "https://getmeerkat.dev/api/mcp" }
+  }
+}
+```
+The client opens a browser sign-in on first use.
+
+Setup guide: [getmeerkat.dev/docs/claude](https://getmeerkat.dev/docs/claude). Official MCP Registry name: `io.github.llschmidt/meerkat`.
+
+## Tools
+
+The server registers six tools.
+
+| Tool | Title | Type | What it does |
+| --- | --- | --- | --- |
+| `chat_with_meerkat` | Chat with Meerkat | writes | Writes or revises a prompt from a short conversation about it, asking the questions that matter first. Saves the result to the user's shelf. |
+| `refactor_prompt` | Sharpen a prompt | writes | Takes a prompt the user already has and returns a tighter version, with a short critique of what was strong and what changed. Saves the request and the revised prompt to the user's shelf. |
+| `roast_prompt` | Roast a prompt | writes | Returns a severity from 0 to 5, a one-line verdict, the lines that hurt the prompt and why, and a rebuilt version, plus a link to a private page with the roast. Nothing is saved to the shelf. Limited to 5 roasts per hour per user. |
+| `save_specimen` | Save to shelf | writes | Saves a prompt to the user's shelf, with an optional title, project and notes. |
+| `search_shelf` | Search shelf | read-only | Searches the user's saved prompts by title or body text. |
+| `list_projects` | List projects | read-only | Lists the user's project folders. |
+
+No tool overwrites or deletes anything. Tools that write only create new rows in the signed-in user's own account. Older copies of five of the tool schemas are in [`tools/`](./tools). For the current, machine-readable tool list, connect any MCP client and call `tools/list`.
+
+## What data leaves your client
+
+When a tool is called, only that tool's arguments are sent to Meerkat. The server does not see the rest of your conversation.
+
+| Tool | Data sent to Meerkat |
+| --- | --- |
+| `chat_with_meerkat` | The conversation turns about the prompt being worked on (your requests and Meerkat's earlier replies), and an optional working style. |
+| `refactor_prompt` | The prompt text you want sharpened, optional notes on what to change, and an optional working style. |
+| `roast_prompt` | The prompt text to roast. |
+| `save_specimen` | The prompt you choose to save, and an optional title, project id and notes. |
+| `search_shelf` | The search text, and an optional limit and project id. |
+| `list_projects` | An optional limit. |
+
+Meerkat does not train models on your prompts. See [`PRIVACY.md`](./PRIVACY.md) and [getmeerkat.dev/privacy](https://getmeerkat.dev/privacy) for storage, retention and deletion.
+
+## How sign-in works
+
+Meerkat uses OAuth with PKCE, with Supabase as the identity provider:
+
+1. You add Meerkat to your MCP client.
+2. The client sends you to `https://getmeerkat.dev/oauth/consent`.
+3. You sign in with your Meerkat account, or create one.
+4. The consent screen says in plain English what the client is asking to do.
+5. On approval, the client receives a token scoped to your account.
+6. Every tool call carries that token. The server resolves it to your account and limits all reads and writes to your own rows.
+
+Discovery metadata is published at `https://getmeerkat.dev/.well-known/oauth-protected-resource` (RFC 9728).
 
 ## Source code
 
-The MCP server, OAuth provider, web app, and Mission Control admin live in
-Meerkat's private monorepo. This public repo intentionally contains only:
+The MCP server, sign-in and web app live in Meerkat's private repository. This public repo contains only:
 
-- Tool schemas (`tools/`)
-- Privacy and terms (`PRIVACY.md`)
-- Setup documentation (this README)
-- License (`LICENSE`)
+- setup and tool documentation (this README);
+- older tool schema copies (`tools/`);
+- the privacy notes (`PRIVACY.md`);
+- the license (`LICENSE`).
 
-If you want to inspect the runtime behavior beyond what's documented here,
-the live server speaks the [Model Context Protocol](https://modelcontextprotocol.io)
-specification version `2025-06-18` over Streamable HTTP. Point any MCP
-client at `https://getmeerkat.dev/api/mcp` after OAuth and call
-`tools/list` for the canonical, machine-readable tool surface.
+The live server speaks the [Model Context Protocol](https://modelcontextprotocol.io) over Streamable HTTP at `https://getmeerkat.dev/api/mcp`.
 
 ## Support
 
 - Setup help: [getmeerkat.dev/docs/claude](https://getmeerkat.dev/docs/claude)
-- Email: lateisha@schmade.com
-- Built by [Schmade](https://schmade.com).
+- Support: [getmeerkat.dev/support](https://getmeerkat.dev/support), lateisha@schmade.com
+- Built by [Schmade](https://schmade.com)
 
 ## License
 
-[MIT](./LICENSE).
+[MIT](./LICENSE)
